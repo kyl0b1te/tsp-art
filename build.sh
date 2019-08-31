@@ -1,8 +1,11 @@
 #!/bin/bash
+
+cd app
+
 for GOOS in darwin linux windows; do
     for GOARCH in 386 amd64; do
         BIN_FILENAME="svg2tsp-${GOOS}-${GOARCH}"
         if [[ "${GOOS}" == "windows" ]]; then BIN_FILENAME="${BIN_FILENAME}.exe"; fi
-        go build -v -o ../bin/$BIN_FILENAME
+        GOOS=${GOOS} GOARCH=${GOARCH} go build -v -o ../bin/$BIN_FILENAME
     done
 done

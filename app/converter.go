@@ -29,17 +29,18 @@ func convert(svg string, tsp string) (bool, error) {
 	defer svgFile.Close()
 
 	// create tsp file
-	tspFile, err := getTSP(tsp)
+	tspFile, err := os.Create(tsp)
 	if err != nil {
-		return false, err
+		return false, errors.Wrapf(err, "Cannot create a .TSP file by path %s", tsp)
 	}
 	defer tspFile.Close()
 
 	// get svg coordinates
 	coors := getCoordinates(svgFile)
+	lines := append(getTSPHeaders(coors), coors...)
 
 	// store coordinates in tsp
-	data := strings.Join(coors, "\n")
+	data := strings.Join(lines, "\n") + "\nEOF"
 	if err := writeInFile(tspFile, data); err != nil {
 		return false, err
 	}
@@ -47,35 +48,23 @@ func convert(svg string, tsp string) (bool, error) {
 	return true, nil
 }
 
-func getTSP(path string) (*os.File, error) {
+func getTSPHeaders(lines []string) []string {
 
-	tspFile, err := os.Create(path)
-	if err != nil {
-		return &os.File{}, errors.Wrapf(err, "Cannot create a .TSP file by path %s", path)
-	}
-	tspHeaders := []string{
+	return []string{
 		"NAME: output",
 		"COMMENT: svg2tsp",
 		"TYPE: TSP",
-		"DIMENSION: 1500", // maybe need to make it configurable
+		fmt.Sprintf("DIMENSION: %d", len(lines)),
 		"EDGE_WEIGHT_TYPE: EUC_2D",
 		"NODE_COORD_SECTION",
 	}
-
-	for _, line := range tspHeaders {
-		if err := writeInFile(tspFile, line); err != nil {
-			tspFile.Close()
-			return &os.File{}, err
-		}
-	}
-
-	return tspFile, nil
 }
 
 func getCoordinates(file *os.File) []string {
 
 	decoder := xml.NewDecoder(file)
-	lines := []string{}
+
+	coords := []string{}
 	for {
 		token, _ := decoder.Token()
 		if token == nil {
@@ -89,15 +78,15 @@ func getCoordinates(file *os.File) []string {
 				decoder.DecodeElement(&root, &startEl)
 
 				for i, crl := range root.Circles {
-					line := fmt.Sprintf("%d %s %s", i+1, crl.X, crl.Y)
-					lines = append(lines, line)
+					crd := fmt.Sprintf("%d %s %s", i+1, crl.X, crl.Y)
+					coords = append(coords, crd)
 				}
 			}
 		default:
 		}
 	}
 
-	return append(lines, "EOF")
+	return coords
 }
 
 func writeInFile(file *os.File, data string) error {
