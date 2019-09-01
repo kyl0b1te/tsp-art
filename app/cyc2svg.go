@@ -60,9 +60,9 @@ func getPathCoordinates(cycFile *os.File, source *SourceSVG) ([]string, error) {
 		}
 		circle := source.Circles[id]
 
-		prefix := "L "
+		prefix := "L"
 		if i == 0 {
-			prefix = "M "
+			prefix = "M"
 		}
 
 		coords = append(coords, fmt.Sprintf("%s %s %s", prefix, circle.X, circle.Y))
@@ -92,8 +92,7 @@ func getPointIndexes(file *os.File) ([]int, error) {
 
 func getSVGData(source *SourceSVG, coords []string) string {
 
-	tpl := `
-<?xml version="1.0" encoding="utf-8"?>
+	tpl := `<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="%spx" height="%spx" viewBox="0 0 %s %s">
  <g fill="black" stroke="none">
