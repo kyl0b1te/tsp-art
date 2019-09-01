@@ -1,41 +1,83 @@
 package main
 
 import (
-	"errors"
+	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/pkg/errors"
 )
 
 func main() {
 
-	if len(os.Args) != 3 {
-		raiseError(errors.New("Some app arguments are missing"))
+	tspFl := flag.Bool("tsp", false, "generate TSP from SVG")
+	artFl := flag.Bool("art", false, "generate TSP Art from SVG with CYC")
+	flag.Parse()
+
+	if *tspFl == true && *artFl == true {
+		raiseError(errors.New("Specify only one flag, -tsp or -art"))
 	}
 
-	svg, err := getFilePathSVG()
-	raiseError(err)
+	if *tspFl == true {
 
-	tsp, err := getFilePathTSP()
-	raiseError(err)
+		if len(flag.Args()) != 1 || flag.Arg(0) == "" {
+			raiseError(errors.New("Invalid input parameters"))
+		}
 
-	_, err = convert(svg, tsp)
-	raiseError(err)
+		svg := flag.Arg(0)
+		tsp := getNewFileName(svg, "", ".tsp")
+
+		err := getTSPFromSVG(svg, tsp)
+		raiseError(err)
+	} else if *artFl == true {
+
+		if len(flag.Args()) != 2 || flag.Arg(0) == "" || flag.Arg(1) == "" {
+			raiseError(errors.New("Invalid input parameters"))
+		}
+
+		svg := flag.Arg(0)
+		cyc := flag.Arg(1)
+		res := getNewFileName(svg, "-art", ".svg")
+
+		err := getSVGFromCYC(cyc, svg, res)
+		raiseError(err)
+	} else {
+
+		help()
+	}
+
+	os.Exit(0)
 }
 
-func getFilePathSVG() (string, error) {
+func help() {
 
-	if os.Args[1] == "" {
-		return "", errors.New("Invalid SVG path")
+	lines := []string{
+		"\nHow to use it:",
+		"\t./tsp_art -tsp [PATH TO SVG] - generates TSP file from SVG",
+		"\t./tsp_art -art [PATH TO SVG] [PATH TO CYC] - generates SVG tsp art file from SVG and CYC",
 	}
-	return os.Args[1], nil
+	fmt.Println(strings.Join(lines, "\n"))
 }
 
-func getFilePathTSP() (string, error) {
+func getNewFileName(srcFile string, prefix string, ext string) string {
 
-	if os.Args[2] == "" {
-		return "", errors.New("Invalid TSP path")
+	srcExt := filepath.Ext(srcFile)
+	trimmed := strings.TrimRight(srcFile, srcExt)
+	return trimmed + prefix + ext
+}
+
+func writeInFile(file *os.File, data string) error {
+
+	writed, err := file.Write([]byte(data + "\n"))
+	if err != nil {
+		return errors.Wrapf(err, "Cannot write data in file: %s", data)
 	}
-	return os.Args[2], nil
+	if writed != len(data) {
+		return errors.Wrapf(err, "Failed on writing data: %s", data)
+	}
+	return nil
 }
 
 func raiseError(err error) {
