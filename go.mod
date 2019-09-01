@@ -1,4 +1,4 @@
-module github.com/zhikiri/svg2tsp
+module github.com/zhikiri/tsp-art
 
 go 1.12
 
