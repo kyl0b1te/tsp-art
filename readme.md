@@ -1,6 +1,6 @@
 # tsp-art
 
-Simple CLI tool assistance for make [Concorde](https://www.tsp.gatech.edu/index.html) application.
+Simple CLI tool assistance for [Concorde](https://www.tsp.gatech.edu/index.html) application.
 Provides possibility to generate TSP files from SVG and TSP Art SVG's from CYC.
 
 ## Requirements
