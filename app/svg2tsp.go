@@ -49,13 +49,9 @@ func getTSPFromSVG(svg string, tsp string) error {
 		lines = append(lines, fmt.Sprintf("%d %s %s", i+1, circle.X, circle.Y))
 	}
 
-	// store lines in tsp
+	// store data in tsp file
 	data := strings.Join(lines, "\n") + "\nEOF"
-	if err := writeInFile(tspFile, data); err != nil {
-		return err
-	}
-
-	return nil
+	return writeInFile(tspFile, data)
 }
 
 func getSourceSVG(file *os.File) *SourceSVG {
